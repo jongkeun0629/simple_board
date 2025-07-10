@@ -11,10 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 
@@ -64,5 +61,18 @@ public class PostController {
         postRepository.save(post);
 
         return "redirect:/posts";
+    }
+
+    @GetMapping("/{id}")
+    public String detail(
+            @PathVariable Integer id,
+            Model model,
+            HttpSession httpSession
+    ) {
+        Post post = postRepository.findById(id).orElseThrow(); // post 없으면 예외처리
+
+        model.addAttribute("post", post);
+
+        return "post-detail";
     }
 }

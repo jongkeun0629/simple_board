@@ -1,6 +1,8 @@
 package com.jongkeun.simple_board.controller;
 
+import com.jongkeun.simple_board.dto.CommentDto;
 import com.jongkeun.simple_board.dto.PostDto;
+import com.jongkeun.simple_board.model.Comment;
 import com.jongkeun.simple_board.model.Post;
 import com.jongkeun.simple_board.model.User;
 import com.jongkeun.simple_board.repository.CommentRepository;
@@ -69,10 +71,39 @@ public class PostController {
             Model model,
             HttpSession httpSession
     ) {
-        Post post = postRepository.findById(id).orElseThrow(); // post 없으면 예외처리
+        Post post = postRepository.findById(id).orElseThrow();
 
         model.addAttribute("post", post);
+        model.addAttribute("commentDto", new CommentDto());
 
         return "post-detail";
+    }
+
+    @PostMapping("/{postId}/comments")
+    public String addComment(
+            @PathVariable Integer postId,
+            @Valid @ModelAttribute CommentDto commentDto,
+            BindingResult bindingResult,
+            HttpSession httpSession,
+            Model model
+    ) {
+        Post post = postRepository.findById(postId).orElseThrow();
+
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("post", post);
+
+            return "post-detail";
+        }
+
+        User user = currentUser(httpSession);
+        Comment comment = Comment.builder()
+                .post(post)
+                .author(user)
+                .text(commentDto.getText())
+                .createdAt(LocalDateTime.now())
+                .build();
+        commentRepository.save(comment);
+
+        return "redirect:/posts/" + postId;
     }
 }
